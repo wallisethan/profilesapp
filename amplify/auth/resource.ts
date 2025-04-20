@@ -1,11 +1,26 @@
-import { defineAuth } from '@aws-amplify/backend';
+import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
+import { postConfirmation } from "../auth/post-confirmation/resource";
 
-/**
- * Define and configure your auth resource
- * @see https://docs.amplify.aws/gen2/build-a-backend/auth
- */
-export const auth = defineAuth({
-  loginWith: {
-    email: true,
+const schema = a
+  .schema({
+    UserProfile: a
+      .model({
+        email: a.string(),
+        profileOwner: a.string(),
+      })
+      .authorization((allow) => [
+        allow.ownerDefinedIn("profileOwner"),
+      ]),
+  })
+  .authorization((allow) => [allow.resource(postConfirmation)]);
+export type Schema = ClientSchema<typeof schema>;
+
+export const auth = defineData({
+  schema,
+  authorizationModes: {
+    defaultAuthorizationMode: "apiKey",
+    apiKeyAuthorizationMode: {
+      expiresInDays: 30,
+    },
   },
 });
